@@ -2,9 +2,49 @@
 <html>
   <head>
     <style>
+      html {
+        height: 100%;
+      }
+
+      body {
+        background: #272822;
+        height: 100%;
+        margin: 0;
+      }
+
+      .console {
+        color: white;
+        font-family: monospace;
+        list-style-type: none;
+        margin: 0;
+        padding: 10px;
+        position: absolute;
+        text-shadow: 1px 1px 2px black;
+        top: 0;
+      }
+
       .image-preview {
-        max-width: 100%;
+        display: block;
+        margin: 0 auto;
         max-height: 100%;
+        max-width: 100%;
+      }
+
+      .tweet {
+        -webkit-appearance: none;
+        background: #059FF5;
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.9);
+        bottom: 30px;
+        box-shadow: 1px 1px 2px black;
+        color: white;
+        display: block;
+        font-family: "Helvetica Neue";
+        font-size: 20pt;
+        left: 50%;
+        padding: 10px 30px;
+        position: absolute;
+        transform: translateX(-50%);
       }
     </style>
   </head>
@@ -17,15 +57,15 @@
     <script src="/socket.io/socket.io.js"></script>
     <script>
       (function () {
-        var remove = function () {
+        var removeImage = function () {
           var image = document.querySelector(".image-preview");
           if (image) {
             image.parentNode.removeChild(image);
           }
         };
 
-        var show = function () {
-          remove();
+        var showImage = function () {
+          removeImage();
           var image = document.createElement("img");
           image.src = "/last_picture.jpg?_=" + new Date().getTime();
           image.className = "image-preview";
@@ -40,10 +80,17 @@
           ul.appendChild(li);
         };
 
+        var reset = function () {
+          var ul = document.querySelector(".console");
+          ul.innerHTML = "";
+          removeImage();
+        };
+
         var socket = io.connect("http://localhost:3000");
-        socket.on("photo", show);
+        socket.on("photo", showImage);
         socket.on("log", log);
-        show();
+        socket.on("reset", reset);
+        showImage();
 
         document.querySelector(".tweet").addEventListener("click", function () {
           fetch("/tweet", { method: "POST" });

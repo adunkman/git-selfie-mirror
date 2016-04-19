@@ -6,7 +6,8 @@ var webcam = require("./webcam-client")();
 var website = require("./website");
 
 var take = function (edge) {
-  website.log("Taking picture, smile! (" + edge + ")");
+  website.broadcast("reset");
+  website.log("Taking picture, smile!");
 
   webcam.take(function (err) {
     if (err) {
