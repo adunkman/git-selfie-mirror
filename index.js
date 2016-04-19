@@ -3,50 +3,36 @@ var five = require("johnny-five");
 var board = new five.Board();
 
 var webcam = require("./webcam-client")();
-var twitter = require("./twitter-client")();
 var website = require("./website");
 
 var take = function (edge) {
-  console.log("[" + new Date() + "]: " + "Taking picture! " + (edge ? edge : ""));
+  website.log("Taking picture, smile! (" + edge + ")");
 
-  webcam.take(function (err, picture) {
+  webcam.take(function (err) {
     if (err) {
-      return console.error("Unable to capture picture.", err);
+      return website.log("Unable to capture picture.", err);
     }
 
-    console.log("Uploading to Twitter...");
-
-    // twitter.upload("Nice selfie! #GITSOS16", picture, function (err, tweet) {
-    //   if (err) {
-    //     return console.error("Unable to tweet picture.", err);
-    //   }
-
-    //   console.log("Tweeted!");
-    // });
-    console.log("Skipping twitter upload.");
-    console.log("Notifying client...");
-
+    website.log("Photo captured.");
     website.broadcast("photo");
   });
 };
 
-global.take = take;
-
 board.on("ready", function() {
-  console.log("board ready");
+  website.log("Board ready.");
   var button = new five.Button(2);
   board.repl.inject({ button: button });
 
-  var isButtonHeld = false;
-
-  var thing = function (edge) {
+  var delayed = function (edge) {
     return function () {
       return take(edge);
     };
   };
 
-  button.on("hold", _.debounce(thing("leading"), 1000, true));
-  button.on("hold", _.debounce(thing("trailing"), 1000, false));
+  // Support for SPST button
+  button.on("hold", _.debounce(delayed("leading"), 1000, true));
+  button.on("hold", _.debounce(delayed("trailing"), 1000, false));
 
-  button.on("down", function () { take("press"); });
+  // Support for simple button
+  // button.on("down", function () { take("press"); });
 });

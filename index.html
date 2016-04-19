@@ -9,6 +9,11 @@
     </style>
   </head>
   <body>
+    <ul class="console">
+    </ul>
+
+    <button type="button" class="tweet">Tweet!</button>
+
     <script src="/socket.io/socket.io.js"></script>
     <script>
       (function () {
@@ -27,9 +32,22 @@
           document.body.appendChild(image);
         };
 
+        var log = function (data) {
+          var ul = document.querySelector(".console");
+          var li = document.createElement("li");
+
+          li.innerText = data.message;
+          ul.appendChild(li);
+        };
+
         var socket = io.connect("http://localhost:3000");
         socket.on("photo", show);
+        socket.on("log", log);
         show();
+
+        document.querySelector(".tweet").addEventListener("click", function () {
+          fetch("/tweet", { method: "POST" });
+        });
       })();
     </script>
   </body>
