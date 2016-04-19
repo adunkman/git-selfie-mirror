@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      .image-preview {
+        max-width: 100%;
+        max-height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      (function () {
+        var remove = function () {
+          var image = document.querySelector(".image-preview");
+          if (image) {
+            image.parentNode.removeChild(image);
+          }
+        };
+
+        var show = function () {
+          remove();
+          var image = document.createElement("img");
+          image.src = "/last_picture.jpg?_=" + new Date().getTime();
+          image.className = "image-preview";
+          document.body.appendChild(image);
+        };
+
+        var socket = io.connect("http://localhost:3000");
+        socket.on("photo", show);
+        show();
+      })();
+    </script>
+  </body>
+</html>

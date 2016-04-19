@@ -1,12 +1,13 @@
+var _ = require("underscore");
 var five = require("johnny-five");
-var http = require("http");
 var board = new five.Board();
 
 var webcam = require("./webcam-client")();
 var twitter = require("./twitter-client")();
+var website = require("./website");
 
-var take = function () {
-  console.log("[" + new Date() + "]: " + "Taking picture!");
+var take = function (edge) {
+  console.log("[" + new Date() + "]: " + "Taking picture! " + (edge ? edge : ""));
 
   webcam.take(function (err, picture) {
     if (err) {
@@ -15,19 +16,37 @@ var take = function () {
 
     console.log("Uploading to Twitter...");
 
-    twitter.upload("Nice selfie! #GITSOS15", picture, function (err, tweet) {
-      if (err) {
-        return console.error("Unable to tweet picture.", err);
-      }
+    // twitter.upload("Nice selfie! #GITSOS16", picture, function (err, tweet) {
+    //   if (err) {
+    //     return console.error("Unable to tweet picture.", err);
+    //   }
 
-      console.log("Tweeted!");
-    });
+    //   console.log("Tweeted!");
+    // });
+    console.log("Skipping twitter upload.");
+    console.log("Notifying client...");
+
+    website.broadcast("photo");
   });
 };
+
+global.take = take;
 
 board.on("ready", function() {
   console.log("board ready");
   var button = new five.Button(2);
   board.repl.inject({ button: button });
-  button.on("down", take);
+
+  var isButtonHeld = false;
+
+  var thing = function (edge) {
+    return function () {
+      return take(edge);
+    };
+  };
+
+  button.on("hold", _.debounce(thing("leading"), 1000, true));
+  button.on("hold", _.debounce(thing("trailing"), 1000, false));
+
+  button.on("down", function () { take("press"); });
 });
